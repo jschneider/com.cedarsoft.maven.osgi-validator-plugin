@@ -10,7 +10,7 @@
 
         <configuration>
           <sourceRoots>
-            <sourceRoot>${basedir}/src/test/resources/valid</sourceRoot>
+            <sourceRoot>${basedir}/src/test/resources/invalid</sourceRoot>
           </sourceRoots>
         </configuration>
       </plugin>

@@ -23,7 +23,13 @@ public class ValidatorMojoTest extends AbstractMojoTestCase {
   }
 
   public void testBasic() throws Exception {
-    ValidatorMojo mojo = createMojo();
+    ValidatorMojo mojo = createMojo("basic.xml");
+    assertThat(mojo).isNotNull();
+    mojo.execute();
+  }
+
+  public void testInvalid() throws Exception {
+    ValidatorMojo mojo = createMojo("invalid.xml");
 
     assertThat(mojo).isNotNull();
 
@@ -34,9 +40,16 @@ public class ValidatorMojoTest extends AbstractMojoTestCase {
     }
   }
 
+  public void testMavenPlugin() throws Exception {
+    ValidatorMojo mojo = createMojo("basic.xml");
+    mojo.mavenProject.setGroupId("com.cedarsoft");
+    mojo.mavenProject.setArtifactId("osgi-validator-maven-plugin");
+    mojo.execute();
+  }
+
   @Nonnull
-  private ValidatorMojo createMojo() throws Exception {
-    File testPom = new File(getBasedir(), "src/test/resources/com/cedarsoft/osgi/validator/test/basic.xml");
+  private ValidatorMojo createMojo(@Nonnull String name) throws Exception {
+    File testPom = new File(getBasedir(), "src/test/resources/com/cedarsoft/osgi/validator/test/" + name);
     assertTrue(testPom.exists());
     ValidatorMojo mojo = (ValidatorMojo) lookupMojo("validate", testPom);
 
@@ -55,5 +68,7 @@ public class ValidatorMojoTest extends AbstractMojoTestCase {
     assertThat(ValidatorMojo.createPackageName("com.cedarsoft", "test")).isEqualTo("com/cedarsoft/test");
     assertThat(ValidatorMojo.createPackageName("com.cedarsoft", "test-asdf")).isEqualTo("com/cedarsoft/test/asdf");
     assertThat(ValidatorMojo.createPackageName("com.cedarsoft-ear", "test-asdf")).isEqualTo("com/cedarsoft/ear/test/asdf");
+
+    assertThat(ValidatorMojo.createPackageName("com.cedarsoft-ear", "test-asdf-maven-plugin")).isEqualTo("com/cedarsoft/ear/test/asdf");
   }
 }
