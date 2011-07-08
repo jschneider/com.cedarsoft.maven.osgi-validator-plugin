@@ -4,8 +4,10 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import javax.annotation.Nonnull;
@@ -34,6 +36,11 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    if ("pom".equals(mavenProject.getPackaging())) {
+      getLog().info("Skipping for packaging \"pom\"");
+      return;
+    }
+
     getLog().info("Validating OSGI-stuff");
 
     List<String> problematicFiles = new ArrayList<String>();
