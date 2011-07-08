@@ -95,9 +95,9 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
   @Nonnull
   public static String createPackageName(@Nonnull String groupId, @Nonnull String artifactId) {
-    String relevantArtifactId = artifactId; //-maven-plugin
+    String relevantArtifactId;
     if (artifactId.endsWith(MAVEN_PLUGIN_SUFFIX)) {
-      relevantArtifactId = artifactId.substring(0, artifactId.indexOf("-maven-plugin"));
+      relevantArtifactId = artifactId.substring(0, artifactId.indexOf(MAVEN_PLUGIN_SUFFIX));
     } else {
       relevantArtifactId = artifactId;
     }
