@@ -1,5 +1,7 @@
 package com.cedarsoft.osgi.validator;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.plugin.testing.stubs.MavenProjectStub;
 import org.codehaus.plexus.logging.Logger;
@@ -22,34 +24,17 @@ public class ValidatorMojoTest extends AbstractMojoTestCase {
     loggerManager.setThreshold(Logger.LEVEL_DEBUG);
   }
 
-  @Test
   public void testBasic() throws Exception {
-    ValidatorMojo mojo1 = createMojo("basic");
+    ValidatorMojo mojo = createMojo("basic");
 
-    //    assertNotNull( mojo.projectArtifact );
-    //    assertNotNull( mojo.outputDirectory );
-    //    assertNotNull( mojo.domainSourceFilePattern );
-    //    assertTrue( mojo.domainSourceFilePattern.length() > 0 );
-    //
-    //    assertNotNull( mojo.getTestOutputDirectory() );
-    //    assertNotNull( mojo.getOutputDirectory() );
-    //    assertNotNull( mojo.getResourcesOutputDirectory() );
-    //    assertNotNull( mojo.getTestResourcesOutputDirectory() );
-
-    ValidatorMojo mojo = mojo1;
     assertThat(mojo).isNotNull();
 
-    //    assertEquals( 2, mojo.getExcludes().size() );
-    //    assertTrue( mojo.outputDirectory.getAbsolutePath(), mojo.outputDirectory.getAbsolutePath().endsWith( "target/test/unit/target/out" ) );
-    //    assertTrue( mojo.testOutputDirectory.getAbsolutePath(), mojo.testOutputDirectory.getAbsolutePath().endsWith( "target/test/unit/target/test-out" ) );
-    mojo.execute();
-    //
-    //    assertEquals( SerializerGeneratorMojo.Target.STAX_MATE, mojo.getDialect() );
-    //
-    //    assertSerializers( mojo );
-    //    assertTests( mojo );
+    try {
+      mojo.execute();
+      fail("Where is the Exception");
+    } catch (MojoExecutionException ignore) {
+    }
   }
-
 
   @Nonnull
   private ValidatorMojo createMojo(@Nonnull String name) throws Exception {

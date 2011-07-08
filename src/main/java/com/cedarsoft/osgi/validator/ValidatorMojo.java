@@ -32,7 +32,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
    *
    * @parameter expression="${fail}"
    */
-  private boolean fail;
+  private boolean fail = true;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
