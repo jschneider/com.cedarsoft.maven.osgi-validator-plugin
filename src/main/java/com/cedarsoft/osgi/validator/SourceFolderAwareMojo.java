@@ -20,7 +20,7 @@ public abstract class SourceFolderAwareMojo extends AbstractMojo {
    * @required
    * @readonly
    */
-  protected List<File> sourceRoots;
+  protected List<String> sourceRoots;
   /**
    * The source directories containing the test sources to be compiled.
    *
@@ -62,7 +62,7 @@ public abstract class SourceFolderAwareMojo extends AbstractMojo {
   }
 
   @Nonnull
-  public List<File> getSourceRoots() {
+  public List<String> getSourceRoots() {
     return Collections.unmodifiableList(sourceRoots);
   }
 }

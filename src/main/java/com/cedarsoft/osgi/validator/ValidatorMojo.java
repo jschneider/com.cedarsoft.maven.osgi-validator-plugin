@@ -14,6 +14,7 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,18 +27,45 @@ import java.util.List;
  * @phase process-sources
  */
 public class ValidatorMojo extends SourceFolderAwareMojo {
+  /**
+   * Whether the build shall fail if a validation is detected
+   *
+   * @parameter expression="${fail}"
+   */
+  private boolean fail;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     getLog().info("Validating OSGI-stuff");
 
-    getLog().debug("Source Roots:");
-    for (File sourceRoot : getSourceRoots()) {
-      getLog().debug("\t" + sourceRoot);
-      validate(sourceRoot);
+    List<String> problematicFiles = new ArrayList<String>();
+
+
+    getLog().info("Source Roots:");
+    for (String sourceRoot : getSourceRoots()) {
+      getLog().info("\t" + sourceRoot);
+
+      File sourceRootDir = new File(sourceRoot);
+      Collections.addAll(problematicFiles, validate(sourceRootDir));
+    }
+
+
+    if (problematicFiles.isEmpty()) {
+      getLog().info("No problematic files found");
+      return;
+    }
+
+    getLog().warn("Found files within a problematic package:");
+    for (String problematicFile : problematicFiles) {
+      getLog().warn("  " + problematicFile);
+    }
+
+    if (fail) {
+      throw new MojoExecutionException("There exist " + problematicFiles.size() + " files that seem to be placed within a problematic package");
     }
   }
 
-  private void validate(@Nonnull File sourceRoot) {
+  private String[] validate(@Nonnull File sourceRoot) {
     DirectoryScanner scanner = new DirectoryScanner();
     scanner.setBasedir(sourceRoot);
     scanner.setIncludes(new String[]{"**/*.java"});
@@ -46,9 +74,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     scanner.setExcludes(new String[]{allowedPrefix + "/**"});
 
     scanner.scan();
-    for (String s : scanner.getIncludedFiles()) {
-      getLog().warn("Invalid File: " + s);
-    }
+    return scanner.getIncludedFiles();
   }
 
   @Nonnull
