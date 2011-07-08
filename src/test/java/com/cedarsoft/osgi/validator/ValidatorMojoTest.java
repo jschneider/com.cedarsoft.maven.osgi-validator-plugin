@@ -1,12 +1,10 @@
 package com.cedarsoft.osgi.validator;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.plugin.testing.stubs.MavenProjectStub;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.LoggerManager;
-import org.junit.*;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -25,7 +23,7 @@ public class ValidatorMojoTest extends AbstractMojoTestCase {
   }
 
   public void testBasic() throws Exception {
-    ValidatorMojo mojo = createMojo("basic");
+    ValidatorMojo mojo = createMojo();
 
     assertThat(mojo).isNotNull();
 
@@ -37,7 +35,7 @@ public class ValidatorMojoTest extends AbstractMojoTestCase {
   }
 
   @Nonnull
-  private ValidatorMojo createMojo(@Nonnull String name) throws Exception {
+  private ValidatorMojo createMojo() throws Exception {
     File testPom = new File(getBasedir(), "src/test/resources/com/cedarsoft/osgi/validator/test/basic.xml");
     assertTrue(testPom.exists());
     ValidatorMojo mojo = (ValidatorMojo) lookupMojo("validate", testPom);
