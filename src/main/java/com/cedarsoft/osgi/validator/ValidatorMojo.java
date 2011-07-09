@@ -4,9 +4,8 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.sun.org.apache.xml.internal.utils.StringVector;
+import com.google.common.collect.Sets;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.util.DirectoryScanner;
@@ -15,8 +14,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Validates the package structure for usage with OSGi.
@@ -47,7 +49,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
     List<String> problematicFiles = new ArrayList<String>();
 
-    List<String> allowedPrefixes = createAllowedPrefixes();
+    Set<String> allowedPrefixes = createAllowedPrefixes();
     getLog().info("Allowed prefixes: " + allowedPrefixes);
 
     getLog().info("Source Roots:");
@@ -77,17 +79,15 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     }
   }
 
-  private static String[] validate(@Nonnull File sourceRoot, @Nonnull List<String> allowedPrefixes) {
+  private static String[] validate(@Nonnull File sourceRoot, @Nonnull Set<String> allowedPrefixes) {
     DirectoryScanner scanner = new DirectoryScanner();
     scanner.setBasedir(sourceRoot);
     scanner.setIncludes(new String[]{"**/*.java"});
 
-    List<String> excludes = Lists.transform(allowedPrefixes, new Function<String, String>() {
-      @Override
-      public String apply(@Nullable String input) {
-        return input + "/**";
-      }
-    });
+    Set<String> excludes = Sets.newHashSet();
+    for (String allowedPrefix : allowedPrefixes) {
+      excludes.add(allowedPrefix + "/**");
+    }
     scanner.setExcludes(excludes.toArray(new String[excludes.size()]));
 
     scanner.scan();
@@ -95,7 +95,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
   }
 
   @Nonnull
-  private List<String> createAllowedPrefixes() {
+  private Set<String> createAllowedPrefixes() {
     String groupId = getProject().getGroupId();
     String artifactId = getProject().getArtifactId();
 
@@ -105,11 +105,22 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
 
     //Now create all combinations
-    List<String> allowedPrefixes = new ArrayList<String>();
+    Set<String> allowedPrefixes = new HashSet<String>();
 
+    //Create all combinations
     for (String possibleGroupId : possibleGroupIds) {
       for (String possibleArtifactId : possibleArtifactIds) {
         allowedPrefixes.add(createPrefix(possibleGroupId, possibleArtifactId));
+      }
+    }
+
+    //Remove duplicates
+    for (String current : new ArrayList<String>(allowedPrefixes)) {
+      List<String> idParts = Lists.newArrayList(Splitter.on("/").split(current));
+      Collection<String> partsAsSet = Sets.newLinkedHashSet(idParts);
+
+      if (idParts.size() > partsAsSet.size()) {
+        allowedPrefixes.add(Joiner.on("/").join(partsAsSet));
       }
     }
 
@@ -125,18 +136,17 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     }
 
     {
-      String toSkip = ".commons";
-      if (id.contains(toSkip)) {
-        int start = id.indexOf(toSkip);
-        String first = id.substring(0, start);
-        String second = id.substring(start + toSkip.length());
-
-        ids.add(first + second);
+      String skipped = skip(id, ".commons");
+      if (skipped != null) {
+        ids.add(skipped);
       }
     }
 
-    if (id.endsWith("-commons")) {
-      ids.add(id.substring(0, id.indexOf("-commons")));
+    {
+      String skipped = skip(id, "-commons");
+      if (skipped != null) {
+        ids.add(skipped);
+      }
     }
 
     if (id.endsWith("s")) {
@@ -144,6 +154,19 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     }
 
     return ids;
+  }
+
+  @Nullable
+  private static String skip(@Nonnull String id, @Nonnull String toSkip) {
+    if (!id.contains(toSkip)) {
+      return null;
+    }
+
+    int start = id.indexOf(toSkip);
+    String first = id.substring(0, start);
+    String second = id.substring(start + toSkip.length());
+
+    return first + second;
   }
 
   @Nonnull
