@@ -149,6 +149,13 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
       }
     }
 
+    {
+      String skipped = skip(id, "commons-");
+      if (skipped != null) {
+        ids.add(skipped);
+      }
+    }
+
     if (id.endsWith("s")) {
       ids.add(id.substring(0, id.length() - 1));
     }
