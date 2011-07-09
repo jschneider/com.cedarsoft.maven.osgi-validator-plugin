@@ -5,6 +5,7 @@ import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.plugin.testing.stubs.MavenProjectStub;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.LoggerManager;
+import org.custommonkey.xmlunit.jaxp13.Validator;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -65,10 +66,15 @@ public class ValidatorMojoTest extends AbstractMojoTestCase {
   }
 
   public void testPackagePath() throws Exception {
-    assertThat(ValidatorMojo.createPackageName("com.cedarsoft", "test")).isEqualTo("com/cedarsoft/test");
-    assertThat(ValidatorMojo.createPackageName("com.cedarsoft", "test-asdf")).isEqualTo("com/cedarsoft/test/asdf");
-    assertThat(ValidatorMojo.createPackageName("com.cedarsoft-ear", "test-asdf")).isEqualTo("com/cedarsoft/ear/test/asdf");
+    assertThat(ValidatorMojo.createAllowedPrefix("com.cedarsoft", "test")).isEqualTo("com/cedarsoft/test");
+    assertThat(ValidatorMojo.createAllowedPrefix("com.cedarsoft", "test-asdf")).isEqualTo("com/cedarsoft/test/asdf");
+    assertThat(ValidatorMojo.createAllowedPrefix("com.cedarsoft-ear", "test-asdf")).isEqualTo("com/cedarsoft/ear/test/asdf");
 
-    assertThat(ValidatorMojo.createPackageName("com.cedarsoft-ear", "test-asdf-maven-plugin")).isEqualTo("com/cedarsoft/ear/test/asdf");
+    assertThat(ValidatorMojo.createAllowedPrefix("com.cedarsoft-ear", "test-asdf-maven-plugin")).isEqualTo("com/cedarsoft/ear/test/asdf");
+  }
+
+  public void testPossibleIds() throws Exception {
+    assertThat(ValidatorMojo.createPossibleIds("com.cedarsoft.commons.history")).contains("com.cedarsoft.history");
+    assertThat(ValidatorMojo.createPossibleIds("com.cedarsoft.commons.history")).contains("com.cedarsoft.commons.history");
   }
 }

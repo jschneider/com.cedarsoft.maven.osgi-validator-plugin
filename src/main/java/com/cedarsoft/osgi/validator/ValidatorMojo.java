@@ -1,16 +1,18 @@
 package com.cedarsoft.osgi.validator;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.apache.maven.artifact.handler.ArtifactHandler;
+import com.sun.org.apache.xml.internal.utils.StringVector;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,15 +47,15 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
     List<String> problematicFiles = new ArrayList<String>();
 
-    String allowedPrefix = createPackageName();
-    getLog().debug("Allowed prefix: " + allowedPrefix);
+    List<String> allowedPrefixes = createAllowedPrefixes();
+    getLog().info("Allowed prefixes: " + allowedPrefixes);
 
     getLog().info("Source Roots:");
     for (String sourceRoot : getSourceRoots()) {
       getLog().info("\t" + sourceRoot);
 
       File sourceRootDir = new File(sourceRoot);
-      Collections.addAll(problematicFiles, validate(sourceRootDir, allowedPrefix));
+      Collections.addAll(problematicFiles, validate(sourceRootDir, allowedPrefixes));
     }
 
     if (problematicFiles.isEmpty()) {
@@ -75,26 +77,77 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     }
   }
 
-  private String[] validate(@Nonnull File sourceRoot, @Nonnull String allowedPrefix) {
+  private static String[] validate(@Nonnull File sourceRoot, @Nonnull List<String> allowedPrefixes) {
     DirectoryScanner scanner = new DirectoryScanner();
     scanner.setBasedir(sourceRoot);
     scanner.setIncludes(new String[]{"**/*.java"});
-    scanner.setExcludes(new String[]{allowedPrefix + "/**"});
+
+    List<String> excludes = Lists.transform(allowedPrefixes, new Function<String, String>() {
+      @Override
+      public String apply(@Nullable String input) {
+        return input + "/**";
+      }
+    });
+    scanner.setExcludes(excludes.toArray(new String[excludes.size()]));
 
     scanner.scan();
     return scanner.getIncludedFiles();
   }
 
   @Nonnull
-  private String createPackageName() {
+  private List<String> createAllowedPrefixes() {
     String groupId = getProject().getGroupId();
     String artifactId = getProject().getArtifactId();
 
-    return createPackageName(groupId, artifactId);
+
+    List<String> possibleGroupIds = createPossibleIds(groupId);
+    List<String> possibleArtifactIds = createPossibleIds(artifactId);
+
+
+    //Now create all combinations
+    List<String> allowedPrefixes = new ArrayList<String>();
+
+    for (String possibleGroupId : possibleGroupIds) {
+      for (String possibleArtifactId : possibleArtifactIds) {
+        allowedPrefixes.add(createPrefix(possibleGroupId, possibleArtifactId));
+      }
+    }
+
+    return allowedPrefixes;
+  }
+
+  static List<String> createPossibleIds(@Nonnull String id) {
+    List<String> ids = new ArrayList<String>();
+    ids.add(id);
+
+    if (id.endsWith(MAVEN_PLUGIN_SUFFIX)) {
+      ids.add(id.substring(0, id.indexOf(MAVEN_PLUGIN_SUFFIX)));
+    }
+
+    {
+      String toSkip = ".commons";
+      if (id.contains(toSkip)) {
+        int start = id.indexOf(toSkip);
+        String first = id.substring(0, start);
+        String second = id.substring(start + toSkip.length());
+
+        ids.add(first + second);
+      }
+    }
+
+    if (id.endsWith("-commons")) {
+      ids.add(id.substring(0, id.indexOf("-commons")));
+    }
+
+    if (id.endsWith("s")) {
+      ids.add(id.substring(0, id.length() - 1));
+    }
+
+    return ids;
   }
 
   @Nonnull
-  public static String createPackageName(@Nonnull String groupId, @Nonnull String artifactId) {
+  public static String createAllowedPrefix(@Nonnull String groupId, @Nonnull String artifactId) {
     String relevantArtifactId;
     if (artifactId.endsWith(MAVEN_PLUGIN_SUFFIX)) {
       relevantArtifactId = artifactId.substring(0, artifactId.indexOf(MAVEN_PLUGIN_SUFFIX));
@@ -102,10 +155,14 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
       relevantArtifactId = artifactId;
     }
 
+    return createPrefix(groupId, relevantArtifactId);
+  }
 
+  @Nonnull
+  private static String createPrefix(@Nonnull String relevantGroupId, @Nonnull String relevantArtifactId) {
     Splitter splitter = Splitter.on(new PackageSeparatorCharMatcher());
 
-    List<String> partsList = Lists.newArrayList(splitter.split(groupId));
+    List<String> partsList = Lists.newArrayList(splitter.split(relevantGroupId));
     partsList.addAll(Lists.<String>newArrayList(splitter.split(relevantArtifactId)));
 
 
