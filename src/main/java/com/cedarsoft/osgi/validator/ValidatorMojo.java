@@ -57,6 +57,11 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
       getLog().info("\t" + sourceRoot);
 
       File sourceRootDir = new File(sourceRoot);
+
+      if ( !sourceRootDir.isDirectory() ) {
+        getLog().info( "Skipping <" + sourceRoot + ">: Is not a directory." );
+        continue;
+      }
       Collections.addAll(problematicFiles, validate(sourceRootDir, allowedPrefixes));
     }
 
@@ -81,14 +86,14 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
   private static String[] validate(@Nonnull File sourceRoot, @Nonnull Set<String> allowedPrefixes) {
     DirectoryScanner scanner = new DirectoryScanner();
-    scanner.setBasedir(sourceRoot);
-    scanner.setIncludes(new String[]{"**/*.java"});
+    scanner.setBasedir( sourceRoot );
+    scanner.setIncludes( new String[]{"**/*.java"} );
 
     Set<String> excludes = Sets.newHashSet();
-    for (String allowedPrefix : allowedPrefixes) {
-      excludes.add(allowedPrefix + "/**");
+    for ( String allowedPrefix : allowedPrefixes ) {
+      excludes.add( allowedPrefix + "/**" );
     }
-    scanner.setExcludes(excludes.toArray(new String[excludes.size()]));
+    scanner.setExcludes( excludes.toArray( new String[excludes.size()] ) );
 
     scanner.scan();
     return scanner.getIncludedFiles();
