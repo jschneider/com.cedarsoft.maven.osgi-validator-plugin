@@ -44,9 +44,6 @@
       <artifactId>javax.inject</artifactId>
     </dependency>
 
-
-    <!--NotNull Annotations-->
-
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
