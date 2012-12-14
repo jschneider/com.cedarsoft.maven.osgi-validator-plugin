@@ -29,7 +29,7 @@ import java.util.Set;
  *
  * @author Johannes Schneider (<a href="mailto:js@cedarsoft.com">js@cedarsoft.com</a>)
  */
-@Mojo(name = "validate", defaultPhase = LifecyclePhase.PROCESS_SOURCES)
+@Mojo(name = "validate", defaultPhase = LifecyclePhase.VALIDATE)
 public class ValidatorMojo extends SourceFolderAwareMojo {
   public static final String MAVEN_PLUGIN_SUFFIX = "-maven-plugin";
   /**
