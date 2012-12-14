@@ -152,6 +152,13 @@
             <file>**/HelpMojo.java</file>
           </skippedFiles>
         </configuration>
+
+        <executions>
+          <execution>
+            <phase>none</phase>
+          </execution>
+        </executions>
+
       </plugin>
 
     </plugins>
