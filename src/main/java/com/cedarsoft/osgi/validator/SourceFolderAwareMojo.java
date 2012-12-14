@@ -41,12 +41,13 @@ public abstract class SourceFolderAwareMojo extends AbstractMojo {
   @Parameter (defaultValue = "${project.testResources}", readonly = true, required = true)
   private List<Resource> testResources;
 
-  /**
-   * The maven session
-   *
-   */
+  @Parameter (defaultValue = "${project.build.outputDirectory}", readonly = true, required = true)
+  protected File classesDir;
+
   @Parameter (defaultValue = "${project}", readonly = true, required = true)
   protected MavenProject mavenProject;
+
+
 
   protected MavenProject getProject() {
     return mavenProject;

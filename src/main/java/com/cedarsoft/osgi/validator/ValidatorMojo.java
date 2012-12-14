@@ -49,8 +49,9 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
   @Parameter( defaultValue = "${skipped.files}", property = "skipped.files" )
   protected List<String> skippedFiles = new ArrayList<>();
 
-  @Parameter( defaultValue = "${prohibited.packages}", property = "prohibited.packages" )
-  protected Set<String> prohibitedPackages = new HashSet<>();
+  //  @Parameter( property = "prohibited.packages" )
+  @Parameter
+  protected Set<String> prohibitedPackages= ImmutableSet.of("internal");
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
