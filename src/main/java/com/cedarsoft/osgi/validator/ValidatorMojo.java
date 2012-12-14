@@ -48,6 +48,11 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     getLog().info("Validating OSGI-stuff");
 
     validatePackages();
+    validateImportedPackages();
+  }
+
+  private void validateImportedPackages() {
+//    File manifest = new File();
   }
 
   private void validatePackages() throws MojoExecutionException {
