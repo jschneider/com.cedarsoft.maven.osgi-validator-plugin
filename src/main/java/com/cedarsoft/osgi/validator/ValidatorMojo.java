@@ -47,6 +47,10 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
     getLog().info("Validating OSGI-stuff");
 
+    validatePackages();
+  }
+
+  private void validatePackages() throws MojoExecutionException {
     Collection<String> problematicFiles = new ArrayList<String>();
 
     Set<String> allowedPrefixes = createAllowedPrefixes();
@@ -62,7 +66,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
         getLog().info( "Skipping <" + sourceRoot + ">: Is not a directory." );
         continue;
       }
-      Collections.addAll(problematicFiles, validate(sourceRootDir, allowedPrefixes));
+      Collections.addAll( problematicFiles, validate( sourceRootDir, allowedPrefixes ) );
     }
 
     if (problematicFiles.isEmpty()) {
