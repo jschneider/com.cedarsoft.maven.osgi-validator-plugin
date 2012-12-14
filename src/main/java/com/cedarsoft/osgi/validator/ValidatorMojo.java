@@ -38,6 +38,12 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
   @Parameter(defaultValue = "${fail}", property = "osgi-validation.fail")
   private boolean fail = true;
 
+  /**
+   * The source directories containing the test sources to be compiled.
+   */
+  @Parameter( defaultValue = "${skipped.files}", property = "skipped.files" )
+  protected List<String> skippedFiles = new ArrayList<>();
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     if ("pom".equals(mavenProject.getPackaging())) {
@@ -62,6 +68,8 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     getLog().info("Allowed prefixes: " + allowedPrefixes);
 
     getLog().info("Source Roots:");
+    getLog().debug( "Skipped Files: " + skippedFiles );
+
     for (String sourceRoot : getSourceRoots()) {
       getLog().info("\t" + sourceRoot);
 
@@ -71,7 +79,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
         getLog().info( "Skipping <" + sourceRoot + ">: Is not a directory." );
         continue;
       }
-      Collections.addAll( problematicFiles, validate( sourceRootDir, allowedPrefixes ) );
+      Collections.addAll( problematicFiles, validate( sourceRootDir, allowedPrefixes, skippedFiles ) );
     }
 
     if (problematicFiles.isEmpty()) {
@@ -93,12 +101,14 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     }
   }
 
-  private static String[] validate(@Nonnull File sourceRoot, @Nonnull Set<String> allowedPrefixes) {
+  private static String[] validate(@Nonnull File sourceRoot, @Nonnull Set<String> allowedPrefixes, @Nonnull Collection<? extends String> skippedFiles) {
     DirectoryScanner scanner = new DirectoryScanner();
     scanner.setBasedir( sourceRoot );
     scanner.setIncludes( new String[]{"**/*.java"} );
 
     Set<String> excludes = Sets.newHashSet();
+    excludes.addAll( skippedFiles );
+
     for ( String allowedPrefix : allowedPrefixes ) {
       excludes.add( allowedPrefix + "/**" );
     }
