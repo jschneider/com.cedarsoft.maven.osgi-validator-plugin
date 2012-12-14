@@ -3,6 +3,7 @@ package com.cedarsoft.osgi.validator;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -15,12 +16,16 @@ import org.codehaus.plexus.util.DirectoryScanner;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 /**
  * Validates the package structure for usage with OSGi.
@@ -44,6 +49,9 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
   @Parameter( defaultValue = "${skipped.files}", property = "skipped.files" )
   protected List<String> skippedFiles = new ArrayList<>();
 
+  @Parameter( defaultValue = "${prohibited.packages}", property = "prohibited.packages" )
+  protected Set<String> prohibitedPackages = new HashSet<>();
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     if ("pom".equals(mavenProject.getPackaging())) {
@@ -57,8 +65,57 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     validateImportedPackages();
   }
 
-  private void validateImportedPackages() {
-//    File manifest = new File();
+  private void validateImportedPackages() throws MojoFailureException {
+    File manifestFile = new File( new File( classesDir, "META-INF" ), "MANIFEST.MF" );
+
+    if ( !manifestFile.exists() ) {
+      getLog().info( "No MANIFEST.MF found" );
+      return;
+    }
+
+    getLog().info( "Validating " + manifestFile.getAbsolutePath() );
+
+    try {
+      try ( FileInputStream is = new FileInputStream( manifestFile ) ) {
+        Manifest manifest = new Manifest( is );
+
+
+        boolean containsError = false;
+        Attributes mainAttributes = manifest.getMainAttributes();
+
+        @Nullable String exportPackage = mainAttributes.getValue( "Export-Package" );
+        if ( exportPackage != null ) {
+          Iterable<String> packages = Splitter.on( ',' ).split( exportPackage );
+          for ( String packageName : packages ) {
+            for ( String prohibitedPackage : prohibitedPackages ) {
+              if ( packageName.contains( prohibitedPackage ) ) {
+                getLog().error( "Prohibited package exported: " + packageName );
+                containsError = true;
+              }
+            }
+          }
+        }
+
+        @Nullable String importPackage = mainAttributes.getValue( "Import-Package" );
+        if ( importPackage != null ) {
+          Iterable<String> packages = Splitter.on( ',' ).split( importPackage );
+          for ( String packageName : packages ) {
+            for ( String prohibitedPackage : prohibitedPackages ) {
+              if ( packageName.contains( prohibitedPackage ) ) {
+                getLog().error( "Prohibited package imported: " + packageName );
+                containsError = true;
+              }
+            }
+          }
+        }
+
+        if ( containsError ) {
+          throw new MojoFailureException( "Invalid package export/import" );
+        }
+      }
+    } catch ( IOException e ) {
+      throw new MojoFailureException( "Could not read manifest", e );
+    }
   }
 
   private void validatePackages() throws MojoExecutionException {
