@@ -142,6 +142,18 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>com.cedarsoft</groupId>
+        <artifactId>osgi-validator-maven-plugin</artifactId>
+
+        <configuration>
+          <skippedFiles>
+            <file>**/HelpMojo.java</file>
+          </skippedFiles>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 
