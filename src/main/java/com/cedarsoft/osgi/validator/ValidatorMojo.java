@@ -47,7 +47,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
     getLog().info("Validating OSGI-stuff");
 
-    List<String> problematicFiles = new ArrayList<String>();
+    Collection<String> problematicFiles = new ArrayList<String>();
 
     Set<String> allowedPrefixes = createAllowedPrefixes();
     getLog().info("Allowed prefixes: " + allowedPrefixes);
