@@ -2,6 +2,7 @@ package com.cedarsoft.osgi.validator;
 
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import javax.annotation.Nonnull;
@@ -16,45 +17,35 @@ public abstract class SourceFolderAwareMojo extends AbstractMojo {
   /**
    * The source directories containing the sources to be compiled.
    *
-   * @parameter default-value="${project.compileSourceRoots}"
-   * @required
-   * @readonly
    */
+  @Parameter (defaultValue = "${project.compileSourceRoots}", readonly = true, required = true)
   protected List<String> sourceRoots;
   /**
    * The source directories containing the test sources to be compiled.
    *
-   * @parameter default-value="${project.testCompileSourceRoots}"
-   * @required
-   * @readonly
    */
+  @Parameter (defaultValue = "${project.testCompileSourceRoots}", readonly = true, required = true)
   protected List<String> testSourceRoots;
 
   /**
    * The list of resources.
    *
-   * @parameter default-value="${project.resources}"
-   * @required
-   * @readonly
    */
+  @Parameter (defaultValue = "${project.resources}", readonly = true, required = true)
   private List<Resource> resources;
 
   /**
    * The list of test resources
    *
-   * @parameter expression="${project.testResources}"
-   * @required
-   * @readonly
    */
+  @Parameter (defaultValue = "${project.testResources}", readonly = true, required = true)
   private List<Resource> testResources;
 
   /**
    * The maven session
    *
-   * @parameter expression="${project}"
-   * @required
-   * @readonly
    */
+  @Parameter (defaultValue = "${project}", readonly = true, required = true)
   protected MavenProject mavenProject;
 
   protected MavenProject getProject() {

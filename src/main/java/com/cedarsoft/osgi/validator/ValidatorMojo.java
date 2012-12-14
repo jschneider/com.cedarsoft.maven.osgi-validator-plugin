@@ -1,13 +1,15 @@
 package com.cedarsoft.osgi.validator;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import javax.annotation.Nonnull;
@@ -26,16 +28,14 @@ import java.util.Set;
  * This ensures that no duplicate packages can be exported.
  *
  * @author Johannes Schneider (<a href="mailto:js@cedarsoft.com">js@cedarsoft.com</a>)
- * @goal validate
- * @phase process-sources
  */
+@Mojo(name = "validate", defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class ValidatorMojo extends SourceFolderAwareMojo {
   public static final String MAVEN_PLUGIN_SUFFIX = "-maven-plugin";
   /**
    * Whether the build shall fail if a validation is detected
-   *
-   * @parameter expression="${fail}"
    */
+  @Parameter(defaultValue = "${fail}", property = "osgi-validation.fail")
   private boolean fail = true;
 
   @Override
