@@ -59,7 +59,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
       return;
     }
 
-    getLog().info("Validating OSGI-stuff");
+    getLog().info("Validating OSGi-stuff");
 
     validatePackages();
     validateImportedPackages();
