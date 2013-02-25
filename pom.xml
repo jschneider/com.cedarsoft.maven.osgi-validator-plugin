@@ -9,7 +9,7 @@
 
   <groupId>com.cedarsoft</groupId>
   <artifactId>osgi-validator-maven-plugin</artifactId>
-  <version>1.0.5-SNAPSHOT</version>
+  <version>1.0.5</version>
 
   <packaging>maven-plugin</packaging>
 
@@ -19,7 +19,7 @@
     <connection>scm:git:git://git.cedarsoft.com/com.cedarsoft.osgi-validator-maven-plugin</connection>
     <developerConnection>scm:git:ssh://git.cedarsoft.com/home/git/com.cedarsoft.osgi-validator-maven-plugin</developerConnection>
     <url>http://git.cedarsoft.com/com.cedarsoft.osgi-validator-maven-plugin/</url>
-    <tag>HEAD</tag>
+    <tag>osgi-validator-maven-plugin-1.0.5</tag>
   </scm>
 
   <issueManagement>
