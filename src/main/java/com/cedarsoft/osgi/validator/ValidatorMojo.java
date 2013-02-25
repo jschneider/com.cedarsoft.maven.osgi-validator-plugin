@@ -3,6 +3,7 @@ package com.cedarsoft.osgi.validator;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -49,9 +50,14 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
   @Parameter( defaultValue = "${skipped.files}", property = "skipped.files" )
   protected List<String> skippedFiles = new ArrayList<>();
 
-  //  @Parameter( property = "prohibited.packages" )
+  /**
+   * The prohibited package parts
+   */
   @Parameter
   protected Set<String> prohibitedPackages= ImmutableSet.of("internal");
+
+  @Parameter
+  protected Set<String> packagePartsToSkip = ImmutableSet.of( "commons" );
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -182,8 +188,8 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     String artifactId = getProject().getArtifactId();
 
 
-    List<String> possibleGroupIds = createPossibleIds(groupId);
-    List<String> possibleArtifactIds = createPossibleIds(artifactId);
+    List<String> possibleGroupIds = createPossibleIds( groupId, packagePartsToSkip );
+    List<String> possibleArtifactIds = createPossibleIds( artifactId, packagePartsToSkip );
 
 
     //Now create all combinations
@@ -209,32 +215,41 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     return allowedPrefixes;
   }
 
+  @Deprecated
+  @Nonnull
   static List<String> createPossibleIds(@Nonnull String id) {
-    List<String> ids = new ArrayList<String>();
+    return createPossibleIds( id, ImmutableSet.of( "commons" ) );
+  }
+
+  @Nonnull
+  static List<String> createPossibleIds(@Nonnull String id, @Nonnull Set<? extends String> partsToSkip) {
+    List<String> ids = new ArrayList<>();
     ids.add(id);
 
     if (id.endsWith(MAVEN_PLUGIN_SUFFIX)) {
       ids.add(id.substring(0, id.indexOf(MAVEN_PLUGIN_SUFFIX)));
     }
 
-    {
-      String skipped = skip(id, ".commons");
-      if (skipped != null) {
-        ids.add(skipped);
+    for ( String partToSkip : partsToSkip ) {
+      {
+        String skipped = skip( id, "." + partToSkip );
+        if ( skipped != null ) {
+          ids.add( skipped );
+        }
       }
-    }
 
-    {
-      String skipped = skip(id, "-commons");
-      if (skipped != null) {
-        ids.add(skipped);
+      {
+        String skipped = skip( id, "-" + partToSkip );
+        if ( skipped != null ) {
+          ids.add( skipped );
+        }
       }
-    }
 
-    {
-      String skipped = skip(id, "commons-");
-      if (skipped != null) {
-        ids.add(skipped);
+      {
+        String skipped = skip( id, partToSkip + "-" );
+        if ( skipped != null ) {
+          ids.add( skipped );
+        }
       }
     }
 

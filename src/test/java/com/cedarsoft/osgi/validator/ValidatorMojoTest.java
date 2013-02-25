@@ -1,5 +1,7 @@
 package com.cedarsoft.osgi.validator;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.plugin.testing.stubs.MavenProjectStub;
@@ -76,5 +78,13 @@ public class ValidatorMojoTest extends AbstractMojoTestCase {
   public void testPossibleIds() throws Exception {
     assertThat(ValidatorMojo.createPossibleIds("com.cedarsoft.commons.history")).contains("com.cedarsoft.history");
     assertThat(ValidatorMojo.createPossibleIds("com.cedarsoft.commons.history")).contains("com.cedarsoft.commons.history");
+  }
+
+  public void testMorePossibleIds() throws Exception {
+    assertThat(ValidatorMojo.createPossibleIds("com.cedarsoft.domain.history", ImmutableSet.of( "domain" ))).hasSize( 2 )
+      .contains("com.cedarsoft.history")
+      .contains("com.cedarsoft.domain.history")
+    ;
+    assertThat(ValidatorMojo.createPossibleIds("com.cedarsoft.domain-asdf.history", ImmutableSet.of("domain"))).contains("com.cedarsoft.asdf.history");
   }
 }
