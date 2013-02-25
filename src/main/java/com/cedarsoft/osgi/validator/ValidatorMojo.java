@@ -197,7 +197,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     }
 
     //Remove duplicates
-    for (String current : new ArrayList<String>(allowedPrefixes)) {
+    for (String current : new ArrayList<>(allowedPrefixes)) {
       List<String> idParts = Lists.newArrayList(Splitter.on("/").split(current));
       Collection<String> partsAsSet = Sets.newLinkedHashSet(idParts);
 
