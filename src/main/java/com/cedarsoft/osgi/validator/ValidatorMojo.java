@@ -193,7 +193,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
 
     //Now create all combinations
-    Set<String> allowedPrefixes = new HashSet<String>();
+    Set<String> allowedPrefixes = new HashSet<>();
 
     //Create all combinations
     for (String possibleGroupId : possibleGroupIds) {
@@ -222,7 +222,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
   }
 
   @Nonnull
-  static List<String> createPossibleIds(@Nonnull String id, @Nonnull Set<? extends String> partsToSkip) {
+  static List<String> createPossibleIds(@Nonnull String id, @Nonnull Iterable<? extends String> partsToSkip) {
     List<String> ids = new ArrayList<>();
     ids.add(id);
 
