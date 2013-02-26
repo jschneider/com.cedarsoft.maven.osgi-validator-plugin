@@ -129,7 +129,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     Collection<String> problematicFiles = new ArrayList<String>();
 
     Set<String> allowedPrefixes = createAllowedPrefixes();
-    getLog().info("Allowed prefixes: " + allowedPrefixes);
+    getLog().info( "Allowed prefixes: " + allowedPrefixes );
 
     getLog().info("Source Roots:");
     getLog().debug( "Skipped Files: " + skippedFiles );
@@ -188,6 +188,10 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     String artifactId = getProject().getArtifactId();
 
 
+    return createAllowedPrefixes( groupId, artifactId, packagePartsToSkip );
+  }
+
+  protected static Set<String> createAllowedPrefixes( @Nonnull String groupId, @Nonnull String artifactId, @Nonnull Set<String> packagePartsToSkip ) {
     List<String> possibleGroupIds = createPossibleIds( groupId, packagePartsToSkip );
     List<String> possibleArtifactIds = createPossibleIds( artifactId, packagePartsToSkip );
 
@@ -204,11 +208,11 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
     //Remove duplicates
     for (String current : new ArrayList<>(allowedPrefixes)) {
-      List<String> idParts = Lists.newArrayList(Splitter.on("/").split(current));
-      Collection<String> partsAsSet = Sets.newLinkedHashSet(idParts);
+      List<String> idParts = Lists.newArrayList( Splitter.on( "/" ).split( current ) );
+      Collection<String> partsAsSet = Sets.newLinkedHashSet( idParts );
 
       if (idParts.size() > partsAsSet.size()) {
-        allowedPrefixes.add(Joiner.on("/").join(partsAsSet));
+        allowedPrefixes.add( Joiner.on( "/" ).join(partsAsSet));
       }
     }
 
