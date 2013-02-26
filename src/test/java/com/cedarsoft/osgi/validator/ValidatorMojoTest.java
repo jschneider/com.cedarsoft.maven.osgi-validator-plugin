@@ -11,6 +11,8 @@ import org.custommonkey.xmlunit.jaxp13.Validator;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -23,6 +25,46 @@ public class ValidatorMojoTest extends AbstractMojoTestCase {
     super.setUp();
     LoggerManager loggerManager = getContainer().lookup(LoggerManager.class);
     loggerManager.setThreshold(Logger.LEVEL_DEBUG);
+  }
+
+  public void testPartsOsgi() throws Exception {
+    Set<String> allowedPrefixes = ValidatorMojo.createAllowedPrefixes( "com.cedarsoft", "osgi-maven-plugin", Collections.<String>emptySet() );
+    assertThat( allowedPrefixes ).hasSize( 2 );
+    assertThat( allowedPrefixes ).contains( "com/cedarsoft/osgi/maven/plugin" );
+    assertThat( allowedPrefixes ).contains( "com/cedarsoft/osgi" );
+  }
+
+  public void testParts() throws Exception {
+    Set<String> allowedPrefixes = ValidatorMojo.createAllowedPrefixes( "com.cedarsoft", "myGroup", Collections.<String>emptySet() );
+    assertThat( allowedPrefixes ).hasSize( 1 );
+    assertThat( allowedPrefixes ).contains( "com/cedarsoft/myGroup" );
+  }
+
+  public void testParts2() throws Exception {
+    Set<String> allowedPrefixes = ValidatorMojo.createAllowedPrefixes( "com.cedarsoft", "myGroup", ImmutableSet.of( "cedarsoft" ) );
+    assertThat( allowedPrefixes ).hasSize( 2 );
+    assertThat( allowedPrefixes )
+      .contains( "com/cedarsoft/myGroup" )
+      .contains( "com/myGroup" )
+    ;
+  }
+
+  public void testSkip2() throws Exception {
+    Set<String> allowedPrefixes = ValidatorMojo.createAllowedPrefixes( "com.cedarsoft", "myart", ImmutableSet.of( "myart" ) );
+    assertThat( allowedPrefixes ).hasSize( 2 );
+    assertThat( allowedPrefixes )
+      .contains( "com/cedarsoft/myart" )
+      .contains( "com/cedarsoft" )
+    ;
+  }
+
+  public void testMaven() throws Exception {
+    Set<String> allowedPrefixes = ValidatorMojo.createAllowedPrefixes( "com.cedarsoft-ear", "test-asdf-maven-plugin", ImmutableSet.of( "myart" ) );
+    assertThat( allowedPrefixes ).hasSize( 2 );
+    assertThat( allowedPrefixes )
+      .contains( "com/cedarsoft/ear/test/asdf" )
+      .contains( "com/cedarsoft/ear/test/asdf/maven/plugin" )
+    ;
   }
 
   public void testBasic() throws Exception {

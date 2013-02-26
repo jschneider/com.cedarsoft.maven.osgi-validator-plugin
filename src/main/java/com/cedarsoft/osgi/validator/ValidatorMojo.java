@@ -3,7 +3,6 @@ package com.cedarsoft.osgi.validator;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -192,27 +191,23 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
   }
 
   protected static Set<String> createAllowedPrefixes( @Nonnull String groupId, @Nonnull String artifactId, @Nonnull Set<String> packagePartsToSkip ) {
-    List<String> possibleGroupIds = createPossibleIds( groupId, packagePartsToSkip );
-    List<String> possibleArtifactIds = createPossibleIds( artifactId, packagePartsToSkip );
+    List<String> possibleIds = createPossibleIds( groupId + "." + artifactId, packagePartsToSkip );
 
 
     //Now create all combinations
     Set<String> allowedPrefixes = new HashSet<>();
 
-    //Create all combinations
-    for (String possibleGroupId : possibleGroupIds) {
-      for (String possibleArtifactId : possibleArtifactIds) {
-        allowedPrefixes.add(createPrefix(possibleGroupId, possibleArtifactId));
-      }
+    for ( String possibleId : possibleIds ) {
+      allowedPrefixes.add( convertPackageToFile( possibleId ) );
     }
 
     //Remove duplicates
-    for (String current : new ArrayList<>(allowedPrefixes)) {
+    for ( String current : new ArrayList<>( allowedPrefixes ) ) {
       List<String> idParts = Lists.newArrayList( Splitter.on( "/" ).split( current ) );
       Collection<String> partsAsSet = Sets.newLinkedHashSet( idParts );
 
-      if (idParts.size() > partsAsSet.size()) {
-        allowedPrefixes.add( Joiner.on( "/" ).join(partsAsSet));
+      if ( idParts.size() > partsAsSet.size() ) {
+        allowedPrefixes.add( Joiner.on( "/" ).join( partsAsSet ) );
       }
     }
 
@@ -277,6 +272,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     return first + second;
   }
 
+  @Deprecated
   @Nonnull
   public static String createAllowedPrefix(@Nonnull String groupId, @Nonnull String artifactId) {
     String relevantArtifactId;
@@ -286,17 +282,13 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
       relevantArtifactId = artifactId;
     }
 
-    return createPrefix(groupId, relevantArtifactId);
+    return convertPackageToFile( groupId + "." + relevantArtifactId );
   }
 
   @Nonnull
-  private static String createPrefix(@Nonnull String relevantGroupId, @Nonnull String relevantArtifactId) {
+  private static String convertPackageToFile( @Nonnull String packageName ) {
     Splitter splitter = Splitter.on(new PackageSeparatorCharMatcher());
-
-    List<String> partsList = Lists.newArrayList(splitter.split(relevantGroupId));
-    partsList.addAll(Lists.<String>newArrayList(splitter.split(relevantArtifactId)));
-
-
+    List<String> partsList = Lists.newArrayList(splitter.split(packageName));
     return Joiner.on(File.separator).join(partsList);
   }
 
