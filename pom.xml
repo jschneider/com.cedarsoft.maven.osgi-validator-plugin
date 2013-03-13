@@ -16,9 +16,9 @@
   <inceptionYear>2011</inceptionYear>
 
   <scm>
-    <connection>scm:git:git://git.cedarsoft.com/com.cedarsoft.osgi-validator-maven-plugin</connection>
-    <developerConnection>scm:git:ssh://git.cedarsoft.com/home/git/com.cedarsoft.osgi-validator-maven-plugin</developerConnection>
-    <url>http://git.cedarsoft.com/com.cedarsoft.osgi-validator-maven-plugin/</url>
+    <connection>scm:git:git://github.com/jschneider/com.cedarsoft.maven.osgi-validator-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com:jschneider/com.cedarsoft.maven.osgi-validator-plugin.git</developerConnection>
+    <url>https://github.com/jschneider/com.cedarsoft.maven.osgi-validator-plugin.git</url>
     <tag>HEAD</tag>
   </scm>
 
