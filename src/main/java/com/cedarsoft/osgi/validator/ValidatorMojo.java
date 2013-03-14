@@ -47,7 +47,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
    * The source directories containing the test sources to be compiled.
    */
   @Parameter( defaultValue = "${skipped.files}", property = "skipped.files" )
-  protected List<String> skippedFiles = new ArrayList<>();
+  protected List<String> skippedFiles = new ArrayList<String>();
 
   /**
    * The prohibited package parts
@@ -82,7 +82,8 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     getLog().info( "Validating " + manifestFile.getAbsolutePath() );
 
     try {
-      try ( FileInputStream is = new FileInputStream( manifestFile ) ) {
+      FileInputStream is = new FileInputStream( manifestFile );
+      try {
         Manifest manifest = new Manifest( is );
 
 
@@ -118,6 +119,8 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
         if ( containsError ) {
           throw new MojoFailureException( "Invalid package export/import" );
         }
+      } finally {
+        is.close();
       }
     } catch ( IOException e ) {
       throw new MojoFailureException( "Could not read manifest", e );
@@ -195,14 +198,14 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
 
     //Now create all combinations
-    Set<String> allowedPrefixes = new HashSet<>();
+    Set<String> allowedPrefixes = new HashSet<String>();
 
     for ( String possibleId : possibleIds ) {
       allowedPrefixes.add( convertPackageToFile( possibleId ) );
     }
 
     //Remove duplicates
-    for ( String current : new ArrayList<>( allowedPrefixes ) ) {
+    for ( String current : new ArrayList<String>( allowedPrefixes ) ) {
       List<String> idParts = Lists.newArrayList( Splitter.on( "/" ).split( current ) );
       Collection<String> partsAsSet = Sets.newLinkedHashSet( idParts );
 
@@ -222,7 +225,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
   @Nonnull
   static List<String> createPossibleIds(@Nonnull String id, @Nonnull Iterable<? extends String> partsToSkip) {
-    List<String> ids = new ArrayList<>();
+    List<String> ids = new ArrayList<String>();
     ids.add(id);
 
     if (id.endsWith(MAVEN_PLUGIN_SUFFIX)) {
