@@ -82,7 +82,8 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     getLog().info( "Validating " + manifestFile.getAbsolutePath() );
 
     try {
-      try ( FileInputStream is = new FileInputStream( manifestFile ) ) {
+      FileInputStream is = new FileInputStream( manifestFile );
+      try {
         Manifest manifest = new Manifest( is );
 
 
@@ -118,6 +119,8 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
         if ( containsError ) {
           throw new MojoFailureException( "Invalid package export/import" );
         }
+      } finally {
+        is.close();
       }
     } catch ( IOException e ) {
       throw new MojoFailureException( "Could not read manifest", e );
