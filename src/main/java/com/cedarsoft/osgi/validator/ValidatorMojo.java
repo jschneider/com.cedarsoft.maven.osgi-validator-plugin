@@ -20,8 +20,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.Attributes;
@@ -34,13 +34,13 @@ import java.util.jar.Manifest;
  *
  * @author Johannes Schneider (<a href="mailto:js@cedarsoft.com">js@cedarsoft.com</a>)
  */
-@Mojo(name = "validate", defaultPhase = LifecyclePhase.VALIDATE)
+@Mojo( name = "validate", defaultPhase = LifecyclePhase.VALIDATE )
 public class ValidatorMojo extends SourceFolderAwareMojo {
   public static final String MAVEN_PLUGIN_SUFFIX = "-maven-plugin";
   /**
    * Whether the build shall fail if a validation is detected
    */
-  @Parameter(defaultValue = "${fail}", property = "osgi-validation.fail")
+  @Parameter( defaultValue = "${fail}", property = "osgi-validation.fail" )
   private boolean fail = true;
 
   /**
@@ -53,19 +53,19 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
    * The prohibited package parts
    */
   @Parameter
-  protected Set<String> prohibitedPackages= ImmutableSet.of("internal");
+  protected Set<String> prohibitedPackages = ImmutableSet.of( "internal" );
 
   @Parameter
-  protected Set<String> packagePartsToSkip = ImmutableSet.of( "commons" );
+  protected Set<String> packagePartsToSkip = ImmutableSet.of( "commons", "maven", "plugin" );
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if ("pom".equals(mavenProject.getPackaging())) {
-      getLog().info("Skipping for packaging \"pom\"");
+    if ( "pom".equals( mavenProject.getPackaging() ) ) {
+      getLog().info( "Skipping for packaging \"pom\"" );
       return;
     }
 
-    getLog().info("Validating OSGi-stuff");
+    getLog().info( "Validating OSGi-stuff" );
 
     validatePackages();
     validateImportedPackages();
@@ -130,44 +130,67 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
   private void validatePackages() throws MojoExecutionException {
     Collection<String> problematicFiles = new ArrayList<String>();
 
-    Set<String> allowedPrefixes = createAllowedPrefixes();
-    getLog().info( "Allowed prefixes: " + allowedPrefixes );
-
-    getLog().info("Source Roots:");
+    getLog().info( "Source Roots:" );
     getLog().debug( "Skipped Files: " + skippedFiles );
 
-    for (String sourceRoot : getSourceRoots()) {
-      getLog().info("\t" + sourceRoot);
+    for ( String sourceRoot : getSourceRoots() ) {
+      getLog().info( "\t" + sourceRoot );
 
-      File sourceRootDir = new File(sourceRoot);
+      File sourceRootDir = new File( sourceRoot );
 
       if ( !sourceRootDir.isDirectory() ) {
         getLog().info( "Skipping <" + sourceRoot + ">: Is not a directory." );
         continue;
       }
-      Collections.addAll( problematicFiles, validate( sourceRootDir, allowedPrefixes, skippedFiles ) );
+
+      problematicFiles.addAll( validate( sourceRootDir, skippedFiles ) );
     }
 
-    if (problematicFiles.isEmpty()) {
-      getLog().info("No problematic files found");
+    if ( problematicFiles.isEmpty() ) {
+      getLog().info( "No problematic files found" );
       return;
     }
 
-    if (fail) {
-      getLog().error("Found files within a problematic package:");
-      for (String problematicFile : problematicFiles) {
-        getLog().error("  " + problematicFile);
+    if ( fail ) {
+      getLog().error( "Found files within a problematic package:" );
+      for ( String problematicFile : problematicFiles ) {
+        getLog().error( "  " + problematicFile );
       }
-      throw new MojoExecutionException("There exist " + problematicFiles.size() + " files that seem to be placed within a problematic package");
+      throw new MojoExecutionException( "There exist " + problematicFiles.size() + " files that seem to be placed within a problematic package" );
     } else {
-      getLog().warn("Found files within a problematic package:");
-      for (String problematicFile : problematicFiles) {
-        getLog().warn("  " + problematicFile);
+      getLog().warn( "Found files within a problematic package:" );
+      for ( String problematicFile : problematicFiles ) {
+        getLog().warn( "  " + problematicFile );
       }
     }
   }
 
-  private static String[] validate(@Nonnull File sourceRoot, @Nonnull Set<String> allowedPrefixes, @Nonnull Collection<? extends String> skippedFiles) {
+  @Nonnull
+  private Collection<? extends String> validate( @Nonnull File sourceRoot, @Nonnull Collection<? extends String> skippedFiles ) {
+    String[] javaFiles = findAllJavaFiles( sourceRoot, skippedFiles );
+
+    String groupId = getProject().getGroupId();
+    String artifactId = getProject().getArtifactId();
+    String projectId = groupId + "." + artifactId;
+
+    Validator validator = new Validator( projectId, packagePartsToSkip );
+
+    Collection<String> problematicFiles = new ArrayList<String>();
+    for ( String javaFile : javaFiles ) {
+
+      try {
+        validator.isValid( javaFile );
+      } catch ( ValidationFailedException e ) {
+        getLog().debug( e.getMessage() );
+        problematicFiles.add( javaFile );
+      }
+    }
+
+    return problematicFiles;
+  }
+
+  @Nonnull
+  private static String[] findAllJavaFiles( @Nonnull File sourceRoot, @Nonnull Collection<? extends String> skippedFiles ) {
     DirectoryScanner scanner = new DirectoryScanner();
     scanner.setBasedir( sourceRoot );
     scanner.setIncludes( new String[]{"**/*.java"} );
@@ -175,130 +198,19 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
     Set<String> excludes = Sets.newHashSet();
     excludes.addAll( skippedFiles );
 
-    for ( String allowedPrefix : allowedPrefixes ) {
-      excludes.add( allowedPrefix + "/**" );
-    }
     scanner.setExcludes( excludes.toArray( new String[excludes.size()] ) );
-
     scanner.scan();
+
     return scanner.getIncludedFiles();
   }
 
-  @Nonnull
-  private Set<String> createAllowedPrefixes() {
-    String groupId = getProject().getGroupId();
-    String artifactId = getProject().getArtifactId();
-
-
-    return createAllowedPrefixes( groupId, artifactId, packagePartsToSkip );
-  }
-
-  protected static Set<String> createAllowedPrefixes( @Nonnull String groupId, @Nonnull String artifactId, @Nonnull Set<String> packagePartsToSkip ) {
-    List<String> possibleIds = createPossibleIds( groupId + "." + artifactId, packagePartsToSkip );
-
-
-    //Now create all combinations
-    Set<String> allowedPrefixes = new HashSet<String>();
-
-    for ( String possibleId : possibleIds ) {
-      allowedPrefixes.add( convertPackageToFile( possibleId ) );
-    }
-
-    //Remove duplicates
-    for ( String current : new ArrayList<String>( allowedPrefixes ) ) {
-      List<String> idParts = Lists.newArrayList( Splitter.on( "/" ).split( current ) );
-      Collection<String> partsAsSet = Sets.newLinkedHashSet( idParts );
-
-      if ( idParts.size() > partsAsSet.size() ) {
-        allowedPrefixes.add( Joiner.on( "/" ).join( partsAsSet ) );
-      }
-    }
-
-    return allowedPrefixes;
-  }
-
   @Deprecated
-  @Nonnull
-  static List<String> createPossibleIds(@Nonnull String id) {
-    return createPossibleIds( id, ImmutableSet.of( "commons" ) );
-  }
-
-  @Nonnull
-  static List<String> createPossibleIds(@Nonnull String id, @Nonnull Iterable<? extends String> partsToSkip) {
-    List<String> ids = new ArrayList<String>();
-    ids.add(id);
-
-    if (id.endsWith(MAVEN_PLUGIN_SUFFIX)) {
-      ids.add(id.substring(0, id.indexOf(MAVEN_PLUGIN_SUFFIX)));
-    }
-
-    for ( String partToSkip : partsToSkip ) {
-      {
-        String skipped = skip( id, "." + partToSkip );
-        if ( skipped != null ) {
-          ids.add( skipped );
-        }
-      }
-
-      {
-        String skipped = skip( id, "-" + partToSkip );
-        if ( skipped != null ) {
-          ids.add( skipped );
-        }
-      }
-
-      {
-        String skipped = skip( id, partToSkip + "-" );
-        if ( skipped != null ) {
-          ids.add( skipped );
-        }
-      }
-    }
-
-    if (id.endsWith("s")) {
-      ids.add(id.substring(0, id.length() - 1));
-    }
-
-    return ids;
-  }
-
   @Nullable
-  private static String skip(@Nonnull String id, @Nonnull String toSkip) {
-    if (!id.contains(toSkip)) {
+  private static String skip( @Nonnull String id, @Nonnull String toSkip ) {
+    if ( !id.contains( toSkip ) ) {
       return null;
     }
 
-    int start = id.indexOf(toSkip);
-    String first = id.substring(0, start);
-    String second = id.substring(start + toSkip.length());
-
-    return first + second;
-  }
-
-  @Deprecated
-  @Nonnull
-  public static String createAllowedPrefix(@Nonnull String groupId, @Nonnull String artifactId) {
-    String relevantArtifactId;
-    if (artifactId.endsWith(MAVEN_PLUGIN_SUFFIX)) {
-      relevantArtifactId = artifactId.substring(0, artifactId.indexOf(MAVEN_PLUGIN_SUFFIX));
-    } else {
-      relevantArtifactId = artifactId;
-    }
-
-    return convertPackageToFile( groupId + "." + relevantArtifactId );
-  }
-
-  @Nonnull
-  private static String convertPackageToFile( @Nonnull String packageName ) {
-    Splitter splitter = Splitter.on(new PackageSeparatorCharMatcher());
-    List<String> partsList = Lists.newArrayList(splitter.split(packageName));
-    return Joiner.on(File.separator).join(partsList);
-  }
-
-  private static class PackageSeparatorCharMatcher extends CharMatcher {
-    @Override
-    public boolean matches(char c) {
-      return c == '.' || c == '-';
-    }
+    return id.replace( toSkip, "" );
   }
 }
