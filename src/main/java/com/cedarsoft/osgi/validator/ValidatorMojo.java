@@ -23,7 +23,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -79,7 +81,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
       return;
     }
 
-    getLog().info( "Validating " + manifestFile.getAbsolutePath() );
+    getLog().info( "Validating MANIFEST @ " + manifestFile.getAbsolutePath() );
 
     try {
       FileInputStream is = new FileInputStream( manifestFile );
@@ -128,7 +130,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
   }
 
   private void validatePackages() throws MojoExecutionException {
-    Collection<String> problematicFiles = new ArrayList<String>();
+    Map<String, ValidationFailedException> problematicFiles = new TreeMap<String, ValidationFailedException>();
 
     getLog().info( "Source Roots:" );
     getLog().debug( "Skipped Files: " + skippedFiles );
@@ -143,7 +145,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
         continue;
       }
 
-      problematicFiles.addAll( validate( sourceRootDir, skippedFiles ) );
+      problematicFiles.putAll( validate( sourceRootDir, skippedFiles ) );
     }
 
     if ( problematicFiles.isEmpty() ) {
@@ -153,20 +155,24 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
     if ( fail ) {
       getLog().error( "Found files within a problematic package:" );
-      for ( String problematicFile : problematicFiles ) {
-        getLog().error( "  " + problematicFile );
+      for ( Map.Entry<String, ValidationFailedException> entry : problematicFiles.entrySet() ) {
+        getLog().error( "  " + entry.getKey() );
+        //noinspection ThrowableResultOfMethodCallIgnored
+        getLog().error( "     " + entry.getValue().getMessage() );
       }
       throw new MojoExecutionException( "There exist " + problematicFiles.size() + " files that seem to be placed within a problematic package" );
     } else {
       getLog().warn( "Found files within a problematic package:" );
-      for ( String problematicFile : problematicFiles ) {
-        getLog().warn( "  " + problematicFile );
+      for ( Map.Entry<String, ValidationFailedException> entry : problematicFiles.entrySet() ) {
+        getLog().warn( "  " + entry.getKey() );
+        //noinspection ThrowableResultOfMethodCallIgnored
+        getLog().warn( "     " + entry.getValue().getMessage() );
       }
     }
   }
 
   @Nonnull
-  private Collection<? extends String> validate( @Nonnull File sourceRoot, @Nonnull Collection<? extends String> skippedFiles ) {
+  private Map<String, ValidationFailedException> validate( @Nonnull File sourceRoot, @Nonnull Collection<? extends String> skippedFiles ) {
     String[] javaFiles = findAllJavaFiles( sourceRoot, skippedFiles );
 
     String groupId = getProject().getGroupId();
@@ -175,14 +181,15 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
 
     Validator validator = new Validator( projectId, packagePartsToSkip );
 
-    Collection<String> problematicFiles = new ArrayList<String>();
+    Map<String, ValidationFailedException> problematicFiles = new TreeMap<String, ValidationFailedException>();
     for ( String javaFile : javaFiles ) {
+      getLog().debug( "\tvalidating " + javaFile );
 
       try {
         validator.isValid( javaFile );
       } catch ( ValidationFailedException e ) {
-        getLog().debug( e.getMessage() );
-        problematicFiles.add( javaFile );
+        //noinspection ThrowableResultOfMethodCallIgnored
+        problematicFiles.put( javaFile, e );
       }
     }
 
