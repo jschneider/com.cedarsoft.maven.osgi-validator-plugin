@@ -71,6 +71,17 @@ public class Validator {
         continue;
       }
 
+      //Maybe the part is a duplicate(?)
+      if ( projectIdIndex > 0 && projectIdPart.equals( projectIdParts.get( projectIdIndex - 1 ) ) ) {
+        projectIdIndex++;
+
+        //Do *not* increase the index of the path
+        if ( projectIdIndex == projectIdParts.size() ) {
+          return;
+        }
+        continue;
+      }
+
       throw new ValidationFailedException( relativePath, splitPath, pathIndex, "Expected <" + projectIdPart + ">." );
     }
 
