@@ -14,6 +14,12 @@ import static org.fest.assertions.Fail.fail;
  */
 public class ValidatorTest {
   @Test
+  public void testBug2() throws Exception {
+    Validator validator = new Validator( "com.cedarsoft.commons.swing.swing-presenter", ImmutableSet.of( "commons" ) );
+    validator.isValid( "com/cedarsoft/swing/presenter/SwingPresenter.java" );
+  }
+
+  @Test
   public void testIssue1() throws Exception {
     Validator validator = new Validator( "com.cedarsoft.commons.xml-commons", ImmutableSet.of( "commons" ) );
 
