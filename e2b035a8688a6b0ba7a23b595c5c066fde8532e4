@@ -1,11 +1,11 @@
 {
   "built_on": "master",
-  "duration": 92.75,
-  "full_display_name": "com.cedarsoft.maven.osgi-validator-plugin #50",
-  "id": "2013-05-23_02-58-11",
-  "number": 50,
+  "duration": 98.838,
+  "full_display_name": "com.cedarsoft.maven.osgi-validator-plugin #51",
+  "id": "2013-05-24_02-58-12",
+  "number": 51,
   "result": "SUCCESS",
   "status_message": "?",
-  "time": "2013-05-23 02:58:11 +0200",
-  "url": "job/com.cedarsoft.maven.osgi-validator-plugin/50/"
+  "time": "2013-05-24 02:58:12 +0200",
+  "url": "job/com.cedarsoft.maven.osgi-validator-plugin/51/"
 }
