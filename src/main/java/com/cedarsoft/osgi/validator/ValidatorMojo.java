@@ -125,7 +125,7 @@ public class ValidatorMojo extends SourceFolderAwareMojo {
         is.close();
       }
     } catch ( IOException e ) {
-      throw new MojoFailureException( "Could not read manifest", e );
+      throw new MojoFailureException( "Could not read manifest <" + manifestFile + ">", e );
     }
   }
 
