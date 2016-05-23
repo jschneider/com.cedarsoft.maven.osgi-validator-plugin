@@ -1,20 +1,17 @@
 package com.cedarsoft.osgi.validator;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
+
+import javax.annotation.Nonnull;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.plugin.testing.stubs.MavenProjectStub;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.LoggerManager;
-import org.custommonkey.xmlunit.jaxp13.Validator;
 
-import javax.annotation.Nonnull;
-import java.io.File;
-import java.util.Collections;
-import java.util.Set;
-
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * @author Johannes Schneider (<a href="mailto:js@cedarsoft.com">js@cedarsoft.com</a>)

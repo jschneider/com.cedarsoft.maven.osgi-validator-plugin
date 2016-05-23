@@ -1,13 +1,14 @@
 package com.cedarsoft.osgi.validator;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableSet;
-import org.junit.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
 
 import java.io.File;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
+import org.junit.*;
+
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Johannes Schneider (<a href="mailto:js@cedarsoft.com">js@cedarsoft.com</a>)
